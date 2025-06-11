@@ -80,7 +80,7 @@ class DB:
             "SELECT lang FROM users WHERE user_id = $1",
             user_id
         )
-        return row['lang']masters/master  if row else None
+        return row['lang'] if row else None
 
     async def update_deposit(self, user_id, deposit: str):
         await self.pool.execute(
