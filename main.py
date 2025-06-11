@@ -15,8 +15,11 @@ async def main():
     # Инициализация базы данных
     await DataBase.on_startup()
     
+    # Удаление вебхука перед запуском поллинга
+    await bot.delete_webhook(drop_pending_updates=True)
+    
     # Запуск поллинга
-    await dp.start_polling(bot)  # Используем start_polling вместо run_polling
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     try:
