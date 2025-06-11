@@ -1,7 +1,7 @@
 import asyncio
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
-from handlers import client, admin, other
+from handlers import client, admin
 from database.db import DataBase
 
 async def main():
@@ -11,7 +11,6 @@ async def main():
     # Регистрация роутеров
     dp.include_router(client.router)
     dp.include_router(admin.router)
-    dp.include_router(other.router)
     
     # Инициализация базы данных
     await DataBase.on_startup()
