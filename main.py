@@ -25,6 +25,9 @@ async def on_shutdown(_):
 
 async def handle_root(request):
     logger.info(f"Received request on root: {request.method} {request.path}")
+    if request.method == "POST":
+        logger.info("Redirecting POST to /webhook")
+        return web.HTTPFound(location="/webhook")
     return web.Response(text="Root endpoint, use /webhook", status=200)
 
 async def main():
@@ -50,7 +53,7 @@ async def main():
     except Exception as e:
         logger.error(f"Failed to delete webhook: {e}")
     
-    # Настройка нового вебхука
+    # Настройка нового вебхука с явным путем
     try:
         await bot.set_webhook(
             url=WEBHOOK_URL,
@@ -63,7 +66,8 @@ async def main():
     
     # Настройка веб-сервера
     app = web.Application()
-    app.router.add_get('/', handle_root)  # Добавляем обработчик корневого пути
+    app.router.add_get('/', handle_root)
+    app.router.add_post('/', handle_root)  # Добавляем поддержку POST на корневом пути
     webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
