@@ -1,38 +1,57 @@
 import asyncio
-from aiogram import Bot, Dispatcher
-from config import BOT_TOKEN
-from handlers import client, admin
-from database.db import DataBase
+   import os
+   from aiogram import Bot, Dispatcher
+   from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+   from aiohttp import web
+   from handlers import client, admin
+   from database.db import DataBase
 
-async def main():
-    bot = Bot(token=BOT_TOKEN)
-    dp = Dispatcher()
-    
-    # Регистрация роутеров
-    dp.include_router(client.router)
-    dp.include_router(admin.router)
-    
-    # Инициализация базы данных
-    await DataBase.on_startup()
-    
-    # Удаление вебхука перед запуском поллинга
-    await bot.delete_webhook(drop_pending_updates=True)
-    
-    # Запуск поллинга
-    await dp.start_polling(bot)
+   # Настройки из переменных окружения
+   WEBHOOK_PATH = "/webhook"
+   WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://telegram-bot-1win.onrender.com" + WEBHOOK_PATH)
+   WEB_SERVER_HOST = "0.0.0.0"
+   WEB_SERVER_PORT = int(os.environ.get("PORT", 8080))
 
-if __name__ == "__main__":
-    try:
-        # Проверяем, есть ли уже запущенный цикл событий
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # Если цикл уже запущен, добавляем задачу
-            loop.create_task(main())
-        else:
-            # Если цикла нет, запускаем через run
-            asyncio.run(main())
-    except RuntimeError:
-        # Альтернативный способ для сред с запущенным циклом
-        asyncio.ensure_future(main())
-        loop = asyncio.get_event_loop()
-        loop.run_forever()
+   async def on_startup(_):
+       print(f"Webhook started at {WEBHOOK_URL}")
+
+   async def main():
+       bot = Bot(token=os.environ["BOT_TOKEN"])
+       dp = Dispatcher()
+       
+       # Регистрация роутеров
+       dp.include_router(client.router)
+       dp.include_router(admin.router)
+       
+       # Инициализация базы данных
+       await DataBase.on_startup()
+       
+       # Удаление старого вебхука (если есть)
+       await bot.delete_webhook(drop_pending_updates=True)
+       
+       # Настройка нового вебхука
+       await bot.set_webhook(
+           url=WEBHOOK_URL,
+           allowed_updates=["message", "callback_query"]
+       )
+       
+       # Настройка веб-сервера
+       app = web.Application()
+       webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+       webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+       setup_application(app, dp, bot=bot)
+       
+       # Запуск сервера
+       runner = web.AppRunner(app)
+       await runner.setup()
+       site = web.TCPSite(runner, WEB_SERVER_HOST, WEB_SERVER_PORT)
+       await site.start()
+       
+       # Держим приложение работающим
+       await asyncio.Event().wait()
+
+   if __name__ == "__main__":
+       try:
+           asyncio.run(main())
+       except KeyboardInterrupt:
+           pass
