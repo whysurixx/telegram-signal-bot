@@ -22,9 +22,14 @@ class DB:
             )
         """)
 
-    async def get_ref(self) -> str:
-        row = await self.pool.fetchrow('SELECT ref FROM "desc"')
-        return row['ref'] if row else None
+    async def get_ref():
+    default_ref = "https://1wzyuh.com/casino/list?open=register&p=xzni"  # Замените на реальный URL
+    try:
+        # Здесь должна быть ваша логика получения реферальной ссылки
+        ref = await some_query()  # Например, из таблицы базы данных
+        return ref if ref else default_ref
+    except Exception:
+        return default_ref
 
     async def edit_ref(self, url: str) -> None:
         await self.pool.execute('INSERT INTO "desc" (ref) VALUES ($1) ON CONFLICT (ref) DO UPDATE SET ref = $1', url)

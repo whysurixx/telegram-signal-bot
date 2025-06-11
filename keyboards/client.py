@@ -48,7 +48,8 @@ class ClientKeyboard:
     async def register_keyboard(callback: types.CallbackQuery, lang: str):
         ikb = InlineKeyboardBuilder()
         user_id = callback.from_user.id
-        new_ref_url = f"{(await DataBase.get_ref())}&sub1={user_id}"
+        ref_url = await DataBase.get_ref()
+        new_ref_url = f"{ref_url}&sub1={user_id}" if ref_url else f"https://your-default-link.com&sub1={user_id}"  # Замените на ваш дефолтный URL
         ikb.button(text=languages[lang]["register_action"], url=new_ref_url)
         ikb.button(text=languages[lang]["back"], callback_data="back")
         ikb.adjust(1)
