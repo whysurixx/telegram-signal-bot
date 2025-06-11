@@ -15,13 +15,17 @@ logger = logging.getLogger(__name__)
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL", f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', 'telegram-signal-bot-4elh.onrender.com')}{WEBHOOK_PATH}")
 WEB_SERVER_HOST = "0.0.0.0"
-WEB_SERVER_PORT = int(os.environ.get("PORT", 8080))
+WEB_SERVER_PORT = int(os.environ.get("PORT", 443))
 
 async def on_startup(_):
     logger.info(f"Webhook started at {WEBHOOK_URL}")
 
 async def on_shutdown(_):
     logger.info("Shutting down webhook")
+
+async def handle_root(request):
+    logger.info(f"Received request on root: {request.method} {request.path}")
+    return web.Response(text="Root endpoint, use /webhook", status=200)
 
 async def main():
     bot = Bot(token=os.environ["BOT_TOKEN"])
@@ -59,6 +63,7 @@ async def main():
     
     # Настройка веб-сервера
     app = web.Application()
+    app.router.add_get('/', handle_root)  # Добавляем обработчик корневого пути
     webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
