@@ -9,7 +9,6 @@ class ChatJoinFilter(BaseFilter):
     async def __call__(self, message: types.Message, bot: Bot) -> Any:
         try:
             chat_member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=message.from_user.id)
-            # Проверяем статус как строку
             return chat_member.status in ["member", "creator", "administrator"]
         except Exception:
             return False
