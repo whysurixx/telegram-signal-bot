@@ -17,17 +17,17 @@ class DB:
             )
         """)
         await self.pool.execute("""
-            CREATE TABLE IF NOT EXISTS desc (
+            CREATE TABLE IF NOT EXISTS "desc" (
                 ref TEXT
             )
         """)
 
     async def get_ref(self) -> str:
-        row = await self.pool.fetchrow("SELECT ref FROM desc")
+        row = await self.pool.fetchrow('SELECT ref FROM "desc"')
         return row['ref'] if row else None
 
     async def edit_ref(self, url: str) -> None:
-        await self.pool.execute("INSERT INTO desc (ref) VALUES ($1) ON CONFLICT (ref) DO UPDATE SET ref = $1", url)
+        await self.pool.execute('INSERT INTO "desc" (ref) VALUES ($1) ON CONFLICT (ref) DO UPDATE SET ref = $1', url)
 
     async def get_users_count(self) -> int:
         row = await self.pool.fetchrow("SELECT COUNT(*) FROM users")
@@ -80,7 +80,7 @@ class DB:
             "SELECT lang FROM users WHERE user_id = $1",
             user_id
         )
-        return row['lang'] if row else None
+        return row['lang']masters/master  if row else None
 
     async def update_deposit(self, user_id, deposit: str):
         await self.pool.execute(
