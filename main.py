@@ -25,10 +25,7 @@ async def on_shutdown(_):
 
 async def handle_root(request):
     logger.info(f"Received request on root: {request.method} {request.path}")
-    if request.method == "POST":
-        logger.info("Redirecting POST to /webhook")
-        return web.HTTPFound(location="/webhook")
-    return web.Response(text="Root endpoint, use /webhook", status=200)
+    return web.Response(text="Webhook endpoint is /webhook", status=400)
 
 async def main():
     bot = Bot(token=os.environ["BOT_TOKEN"])
@@ -67,7 +64,7 @@ async def main():
     # Настройка веб-сервера
     app = web.Application()
     app.router.add_get('/', handle_root)
-    app.router.add_post('/', handle_root)  # Добавляем поддержку POST на корневом пути
+    app.router.add_post('/', handle_root)  # Временный обработчик для диагностики
     webhook_requests_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
